@@ -16,19 +16,26 @@ def get_kanji(kanjiList):
     # Obtain main sections of the page 
     mainInfoSoups = pagesoup.find_all('div', class_='small-12 large-7 columns kanji-details__main')
     readingCompoundSoups = pagesoup.find_all('div', class_='row compounds')
+    strokeOrderDiagrams = pagesoup.find_all('div', class_='stroke_order_diagram--outer_container')
+    for i, strokeOrderDiagram in enumerate(strokeOrderDiagrams):
+        strokeOrderDiagrams[i] = strokeOrderDiagram.find('svg')
 
     # Declare kanjiDatas dictionary and intialize kanjiData for each kanji
     kanjiDatas = {}
     for kanji in kanjiList:
         if kanji in searchedKanjis:
-            kanjiDatas[kanji] = KanjiData(list(), list(), list(), list(), list())
+            kanjiDatas[kanji] = KanjiData(list(), list(), list(), list(), list(), None)
 
     # Unpack subsoups of kanji data categories into respective kanjis' fields
-    for kanji, mainInfoSoup, readingCompoundSoup in zip(searchedKanjis, mainInfoSoups, readingCompoundSoups):
+    for kanji, mainInfoSoup, readingCompoundSoup, strokeOrderDiagram in zip(searchedKanjis, mainInfoSoups, readingCompoundSoups, strokeOrderDiagrams):
         kanjiDatas[kanji].kunyomi = mainInfoSoup.find('dl', class_='dictionary_entry kun_yomi')
         kanjiDatas[kanji].onyomi = mainInfoSoup.find('dl', class_='dictionary_entry on_yomi')
         kanjiDatas[kanji].translations = mainInfoSoup.find('div', class_='kanji-details__main-meanings')
-        
+        kanjiDatas[kanji].strokeOrderDiagrams = strokeOrderDiagram
+        #file = open(f"/Users/chungmcl/Desktop/svgs/{kanji}.svg", "wt")
+        #file.write(str(strokeOrderDiagram))
+        #file.close()
+
         readingCompoundLists = readingCompoundSoup.find_all('ul', class_="no-bullet")
         for readingCompoundList in readingCompoundLists:
             if readingCompoundList.previous_sibling.previous_sibling.string == "Kun reading compounds":
@@ -58,6 +65,7 @@ def get_kanji(kanjiList):
 
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
 
+    # Print out collected data
     for kanji, kanjiData in kanjiDatas.items():
         print(kanji + ' kunyomi: ' + str(kanjiData.kunyomi))
         print(kanji + ' onyomi: ' + str(kanjiData.onyomi))
@@ -75,12 +83,13 @@ def get_kanji(kanjiList):
     return kanjiDatas
 
 class KanjiData:
-    def __init__(self, kunyomi, onyomi, translations, kunReadingCompounds, onReadingCompounds):
+    def __init__(self, kunyomi, onyomi, translations, kunReadingCompounds, onReadingCompounds, strokeOrderDiagram):
         self.kunyomi = kunyomi
         self.onyomi = onyomi
         self.translations = translations
         self.kunReadingCompounds = kunReadingCompounds
         self.onReadingCompounds = onReadingCompounds
+        self.strokeOrderDiagram = strokeOrderDiagram
 
 
 input = input("Enter kanji: ")
