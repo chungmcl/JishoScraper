@@ -7,12 +7,19 @@ def get_kanji(kanjiList):
     page_html = requests.get(link).text
 
     pagesoup = BeautifulSoup(page_html, 'html.parser')
+    searchedKanjis = pagesoup.find_all('h1', class_='character')
+    
+    for i, searchedKanji in enumerate(searchedKanjis):
+        searchedKanjis[i] = str(searchedKanji.next_element)
+
+    print(searchedKanjis)
 
     main_soups = pagesoup.find_all('div', class_='small-12 large-7 columns kanji-details__main')
 
     kanjiDatas = {}
     for kanji in kanjiList:
-        kanjiDatas[kanji] = KanjiData(list(), list(), list())
+        if kanji in searchedKanjis:
+            kanjiDatas[kanji] = KanjiData(list(), list(), list())
 
     for kanji, subsoup in zip(kanjiList, main_soups):
         kanjiDatas[kanji].kunyomi = subsoup.find('dl', class_='dictionary_entry kun_yomi')
