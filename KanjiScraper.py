@@ -9,50 +9,78 @@ def get_kanji(kanjiList):
     pagesoup = BeautifulSoup(page_html, 'html.parser')
     searchedKanjis = pagesoup.find_all('h1', class_='character')
     
+    # Obtain all kanjis that were successfully searched and returned from jisho.org
     for i, searchedKanji in enumerate(searchedKanjis):
         searchedKanjis[i] = str(searchedKanji.next_element)
 
-    print(searchedKanjis)
+    # Obtain main sections of the page 
+    mainInfoSoups = pagesoup.find_all('div', class_='small-12 large-7 columns kanji-details__main')
+    readingCompoundSoups = pagesoup.find_all('div', class_='row compounds')
 
-    main_soups = pagesoup.find_all('div', class_='small-12 large-7 columns kanji-details__main')
-
+    # Declare kanjiDatas dictionary and intialize kanjiData for each kanji
     kanjiDatas = {}
     for kanji in kanjiList:
         if kanji in searchedKanjis:
-            kanjiDatas[kanji] = KanjiData(list(), list(), list())
+            kanjiDatas[kanji] = KanjiData(list(), list(), list(), list(), list())
 
-    for kanji, subsoup in zip(searchedKanjis, main_soups):
-        kanjiDatas[kanji].kunyomi = subsoup.find('dl', class_='dictionary_entry kun_yomi')
-        kanjiDatas[kanji].onyomi = subsoup.find('dl', class_='dictionary_entry on_yomi')
-        kanjiDatas[kanji].translations = subsoup.find('div', class_='kanji-details__main-meanings')
+    # Unpack subsoups of kanji data categories into respective kanjis' fields
+    for kanji, mainInfoSoup, readingCompoundSoup in zip(searchedKanjis, mainInfoSoups, readingCompoundSoups):
+        kanjiDatas[kanji].kunyomi = mainInfoSoup.find('dl', class_='dictionary_entry kun_yomi')
+        kanjiDatas[kanji].onyomi = mainInfoSoup.find('dl', class_='dictionary_entry on_yomi')
+        kanjiDatas[kanji].translations = mainInfoSoup.find('div', class_='kanji-details__main-meanings')
+        
+        readingCompoundLists = readingCompoundSoup.find_all('ul', class_="no-bullet")
+        for readingCompoundList in readingCompoundLists:
+            if readingCompoundList.previous_sibling.previous_sibling.string == "Kun reading compounds":
+                kanjiDatas[kanji].kunReadingCompounds = readingCompoundList
+            else:
+                kanjiDatas[kanji].onReadingCompounds = readingCompoundList
 
+    # Reformat subsoups per kanjiData field into string data
     for kanjiData in kanjiDatas.values():
-
-        kanjiData.kunyomi = kanjiData.kunyomi.find_all('a')
-        kanjiData.onyomi = kanjiData.onyomi.find_all('a')
-
-        for i, aLevelSoup in enumerate(kanjiData.kunyomi):
-            kanjiData.kunyomi[i] = aLevelSoup.next_element
-        for i, aLevelSoup in enumerate(kanjiData.onyomi):
-            kanjiData.onyomi[i] = aLevelSoup.next_element
+        # Some kanji DO NOT have kunyomi -- Check if it has kunyomi
+        if kanjiData.kunyomi != None:
+            kanjiData.kunyomi = kanjiData.kunyomi.find_all('a')
+            for i, aLevelSoup in enumerate(kanjiData.kunyomi):
+                kanjiData.kunyomi[i] = aLevelSoup.next_element
+            kanjiData.kunyomi = [str(kun) for kun in kanjiData.kunyomi]
+            kunReadingCompoundList = kanjiData.kunReadingCompounds.find_all('li')
+            kanjiData.kunReadingCompounds = [str(kunReadingCompound.next_element) for kunReadingCompound in kunReadingCompoundList]
+        
+        # Some kanji DO NOT have onyomi -- Check if it has onyomi
+        if kanjiData.onyomi != None:
+            kanjiData.onyomi = kanjiData.onyomi.find_all('a')
+            for i, aLevelSoup in enumerate(kanjiData.onyomi):
+                kanjiData.onyomi[i] = aLevelSoup.next_element
+            kanjiData.onyomi = [str(on) for on in kanjiData.onyomi]
+            onReadingCompoundList = kanjiData.onReadingCompounds.find_all('li')
+            kanjiData.onReadingCompounds = [str(onReadingCompound.next_element) for onReadingCompound in onReadingCompoundList]
 
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
 
-        kanjiData.kunyomi = [str(kun) for kun in kanjiData.kunyomi]
-        kanjiData.onyomi = [str(on) for on in kanjiData.onyomi]
-
     for kanji, kanjiData in kanjiDatas.items():
-        print(kanji + 'kunyomi: ' + str(kanjiData.kunyomi))
-        print(kanji + 'onyomi: ' + str(kanjiData.onyomi))
-        print(kanji + 'translations: ' + str(kanjiData.translations))
+        print(kanji + ' kunyomi: ' + str(kanjiData.kunyomi))
+        print(kanji + ' onyomi: ' + str(kanjiData.onyomi))
+        print(kanji + ' translations: ' + str(kanjiData.translations))
+        print(kanji + ' kun reading compounds: ')
+        for kunReadingCompound in kanjiData.kunReadingCompounds:
+            print(kunReadingCompound)
+        print(' ')
+        
+        print(kanji + ' on reading compounds: ')
+        for onReadingCompound in kanjiData.onReadingCompounds:
+            print(onReadingCompound)
+        print(' ')
     
     return kanjiDatas
 
 class KanjiData:
-    def __init__(self, kunyomi, onyomi, translations):
+    def __init__(self, kunyomi, onyomi, translations, kunReadingCompounds, onReadingCompounds):
         self.kunyomi = kunyomi
         self.onyomi = onyomi
         self.translations = translations
+        self.kunReadingCompounds = kunReadingCompounds
+        self.onReadingCompounds = onReadingCompounds
 
 
 input = input("Enter kanji: ")
