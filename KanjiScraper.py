@@ -21,7 +21,7 @@ def get_kanji(kanjiList):
         if kanji in searchedKanjis:
             kanjiDatas[kanji] = KanjiData(list(), list(), list())
 
-    for kanji, subsoup in zip(kanjiList, main_soups):
+    for kanji, subsoup in zip(searchedKanjis, main_soups):
         kanjiDatas[kanji].kunyomi = subsoup.find('dl', class_='dictionary_entry kun_yomi')
         kanjiDatas[kanji].onyomi = subsoup.find('dl', class_='dictionary_entry on_yomi')
         kanjiDatas[kanji].translations = subsoup.find('div', class_='kanji-details__main-meanings')
