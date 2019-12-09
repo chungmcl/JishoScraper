@@ -33,7 +33,7 @@ def get_kanji(kanjiList):
     # add svgs to strokeOrderDiagarams list
     strokeOrderDiagrams = list()
     for svgLink in svgLinks:
-        strokeOrderDiagrams(requests.get(svgLink).text)
+        strokeOrderDiagrams.append(requests.get(svgLink).text)
         
     # Declare kanjiDatas dictionary and intialize kanjiData for each kanji
     kanjiDatas = {}
