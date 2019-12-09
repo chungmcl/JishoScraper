@@ -87,7 +87,3 @@ class KanjiData:
         self.kunReadingCompounds = kunReadingCompounds
         self.onReadingCompounds = onReadingCompounds
         self.strokeOrderDiagram = strokeOrderDiagram
-
-
-input = input("Enter kanji: ")
-get_kanji(input)
