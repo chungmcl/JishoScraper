@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from KanjiDataObjDef import KanjiData
 import requests
 
 def get_kanji(kanjiList):
@@ -78,12 +79,3 @@ def get_kanji(kanjiList):
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
     
     return kanjiDatas
-
-class KanjiData:
-    def __init__(self, kunyomi, onyomi, translations, kunReadingCompounds, onReadingCompounds, strokeOrderDiagram):
-        self.kunyomi = kunyomi
-        self.onyomi = onyomi
-        self.translations = translations
-        self.kunReadingCompounds = kunReadingCompounds
-        self.onReadingCompounds = onReadingCompounds
-        self.strokeOrderDiagram = strokeOrderDiagram
