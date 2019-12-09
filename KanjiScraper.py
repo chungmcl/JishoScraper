@@ -4,22 +4,37 @@ import requests
 def get_kanji(kanjiList):
     
     link = f"https://jisho.org/search/{kanjiList}%23kanji"
-    page_html = requests.get(link).text
+    pageHtml = requests.get(link).text
 
-    pagesoup = BeautifulSoup(page_html, 'html.parser')
+    pagesoup = BeautifulSoup(pageHtml, 'html.parser')
     searchedKanjis = pagesoup.find_all('h1', class_='character')
     
     # Obtain all kanjis that were successfully searched and returned from jisho.org
     for i, searchedKanji in enumerate(searchedKanjis):
         searchedKanjis[i] = str(searchedKanji.next_element)
 
-    # Obtain main sections of the page 
+    # Obtain main sections of the page
     mainInfoSoups = pagesoup.find_all('div', class_='small-12 large-7 columns kanji-details__main')
     readingCompoundSoups = pagesoup.find_all('div', class_='row compounds')
-    strokeOrderDiagrams = pagesoup.find_all('div', class_='stroke_order_diagram--outer_container')
-    for i, strokeOrderDiagram in enumerate(strokeOrderDiagrams):
-        strokeOrderDiagrams[i] = strokeOrderDiagram.find('svg')
-
+    jsScripts = pagesoup.find_all('script')
+    # Get the last (# of kanji searched) scripts - 1, as they contain the URL to the stroke order diagrams
+    jsScripts = jsScripts[len(jsScripts) - 1 - len(searchedKanjis) : len(jsScripts) - 1]
+    svgLinks = list()
+    # Obtain links from the jsScripts
+    variableStatement = 'var url = '
+    for jsScript in jsScripts:
+        current = str(jsScript)
+        # Remove single quote from beginning of string (+ 1), remove the single quote from end of string (- 1)
+        current = current[current.find(variableStatement) + len(variableStatement) + 1 : current.find(';') - 1]
+        current = "http:" + current
+        svgLinks.append(current)
+    
+    # Obtain .svgs from the svg links,
+    # add svgs to strokeOrderDiagarams list
+    strokeOrderDiagrams = list()
+    for svgLink in svgLinks:
+        strokeOrderDiagrams(requests.get(svgLink).text)
+        
     # Declare kanjiDatas dictionary and intialize kanjiData for each kanji
     kanjiDatas = {}
     for kanji in kanjiList:
@@ -32,9 +47,6 @@ def get_kanji(kanjiList):
         kanjiDatas[kanji].onyomi = mainInfoSoup.find('dl', class_='dictionary_entry on_yomi')
         kanjiDatas[kanji].translations = mainInfoSoup.find('div', class_='kanji-details__main-meanings')
         kanjiDatas[kanji].strokeOrderDiagrams = strokeOrderDiagram
-        #file = open(f"/Users/chungmcl/Desktop/svgs/{kanji}.svg", "wt")
-        #file.write(str(strokeOrderDiagram))
-        #file.close()
 
         readingCompoundLists = readingCompoundSoup.find_all('ul', class_="no-bullet")
         for readingCompoundList in readingCompoundLists:
@@ -64,21 +76,6 @@ def get_kanji(kanjiList):
             kanjiData.onReadingCompounds = [str(onReadingCompound.next_element) for onReadingCompound in onReadingCompoundList]
 
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
-
-    # Print out collected data
-    for kanji, kanjiData in kanjiDatas.items():
-        print(kanji + ' kunyomi: ' + str(kanjiData.kunyomi))
-        print(kanji + ' onyomi: ' + str(kanjiData.onyomi))
-        print(kanji + ' translations: ' + str(kanjiData.translations))
-        print(kanji + ' kun reading compounds: ')
-        for kunReadingCompound in kanjiData.kunReadingCompounds:
-            print(kunReadingCompound)
-        print(' ')
-        
-        print(kanji + ' on reading compounds: ')
-        for onReadingCompound in kanjiData.onReadingCompounds:
-            print(onReadingCompound)
-        print(' ')
     
     return kanjiDatas
 
