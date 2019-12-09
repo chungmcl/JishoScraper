@@ -46,7 +46,7 @@ def get_kanji(kanjiList):
         kanjiDatas[kanji].kunyomi = mainInfoSoup.find('dl', class_='dictionary_entry kun_yomi')
         kanjiDatas[kanji].onyomi = mainInfoSoup.find('dl', class_='dictionary_entry on_yomi')
         kanjiDatas[kanji].translations = mainInfoSoup.find('div', class_='kanji-details__main-meanings')
-        kanjiDatas[kanji].strokeOrderDiagrams = strokeOrderDiagram
+        kanjiDatas[kanji].strokeOrderDiagram = strokeOrderDiagram
 
         readingCompoundLists = readingCompoundSoup.find_all('ul', class_="no-bullet")
         for readingCompoundList in readingCompoundLists:
