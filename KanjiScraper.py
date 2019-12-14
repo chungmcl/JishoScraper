@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from KanjiDataObjDef import KanjiData
+# May need to switch to aiohttp
 import requests
 
 def get_kanji(kanjiList):
