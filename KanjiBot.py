@@ -32,11 +32,11 @@ async def on_message(message):
             await message.channel.send(kanjiData.kunyomi)
             await message.channel.send(kanjiData.onyomi)
             await message.channel.send(kanjiData.translations)
-            await message.channel.send(kanjiData.kunReadingCompounds)
+            for i, readingCompound in enumerate(kanjiData.kunReadingCompounds):
+                await message.channel.send(readingCompound.replace('\n', '> '))
             await message.channel.send(kanjiData.onReadingCompounds)
             await message.channel.send(kanjiData.strokeOrderDiagram)
             with kanjiData.strokeOrderDiagram as fp:
                 await message.channel.send(file=discord.File(fp, 'strokeOrder.svg'))
-
 
 client.run(token)
