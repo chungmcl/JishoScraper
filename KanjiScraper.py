@@ -67,6 +67,9 @@ def get_kanji(kanjiList):
             kanjiData.kunyomi = [str(kun) for kun in kanjiData.kunyomi]
             kunReadingCompoundList = kanjiData.kunReadingCompounds.find_all('li')
             kanjiData.kunReadingCompounds = [str(kunReadingCompound.next_element) for kunReadingCompound in kunReadingCompoundList]
+        else:
+            kanjiData.kunyomi = ['*No Kunyomi*']
+            kanjiData.kunReadingCompounds = ['*No Kunyomi*']
         
         # Some kanji DO NOT have onyomi -- Check if it has onyomi
         if kanjiData.onyomi != None:
@@ -76,6 +79,9 @@ def get_kanji(kanjiList):
             kanjiData.onyomi = [str(on) for on in kanjiData.onyomi]
             onReadingCompoundList = kanjiData.onReadingCompounds.find_all('li')
             kanjiData.onReadingCompounds = [str(onReadingCompound.next_element) for onReadingCompound in onReadingCompoundList]
+        else:
+            kanjiData.onyomi = ['*No Onyomi*']
+            kanjiData.onReadingCompounds = ['*No Onyomi*']
 
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
     
