@@ -47,8 +47,6 @@ async def on_message(message):
             with io.BytesIO() as png:
                 svg2png(bytestring=kanjiData.strokeOrderDiagram, write_to=png)
                 png.seek(0)
-                await message.channel.send(file=discord.File(fp, f'{kanji}.png'))
-            #with kanjiData.strokeOrderDiagram as fp:
-             #   await message.channel.send(file=discord.File(fp, 'strokeOrder.svg'))
+                await message.channel.send(file=discord.File(png, f'{kanji}.png'))
 
 client.run(token)
