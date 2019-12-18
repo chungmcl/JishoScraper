@@ -4,6 +4,7 @@ import KanjiScraper
 import discord
 from dotenv import load_dotenv
 from cairosvg import svg2png
+from PIL import Image
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -12,7 +13,7 @@ client = discord.Client()
 
 @client.event
 async def on_ready():
-    print(f'{client.user.name} has connected to Discord!')
+    print('CONNECTED TO DISCORD.')
 
 @client.event
 async def on_message(message):
@@ -45,8 +46,30 @@ async def on_message(message):
             await message.channel.send(toSend)
 
             with io.BytesIO() as png:
-                svg2png(bytestring=kanjiData.strokeOrderDiagram, write_to=png)
-                png.seek(0)
+                ReformatStrokeOrderDiagram(kanjiData.strokeOrderDiagram, png)
                 await message.channel.send(file=discord.File(png, f'{kanji}.png'))
+
+def ReformatStrokeOrderDiagram(strokeOrderDiagram, png):
+    strokeOrderDiagram = strokeOrderDiagram.replace('width="109" height="109"', 'width="909" height="909"')
+    svg2png(bytestring=strokeOrderDiagram, write_to=png)
+    png.seek(0)
+
+    img = Image.open(png)
+    png.seek(0)
+    img = img.convert("RGBA")
+    datas = img.getdata()
+
+    newData = []
+    for item in datas:
+        if item[3] == 0:
+            newData.append((255, 255, 255, 255))
+        else:
+            newData.append(item)
+
+    img.putdata(newData)
+    #img.save('/Users/chungmcl/Downloads/test.png')
+    # This doesn't work for some reason - Discord can't process it for some reason
+    img.save(png, 'PNG')
+    png.seek(0)
 
 client.run(token)
