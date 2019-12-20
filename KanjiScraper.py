@@ -57,7 +57,7 @@ def get_kanji(kanjiList):
             else:
                 kanjiDatas[kanji].onReadingCompounds = readingCompoundList
 
-    # Reformat subsoups per kanjiData field into string data
+    # Reformat subsoups per kanjiData field into string data, edit SVG data for StrokeOrderDiagrams
     for kanjiData in kanjiDatas.values():
         # Some kanji DO NOT have kunyomi -- Check if it has kunyomi
         if kanjiData.kunyomi != None:
@@ -84,5 +84,9 @@ def get_kanji(kanjiList):
             kanjiData.onReadingCompounds = ['*No Onyomi*']
 
         kanjiData.translations = str(kanjiData.translations.next_element).strip().split(', ')
+
+        # Increase the size of the stroke order diagram and add a white background instead of just transparent
+        kanjiData.strokeOrderDiagram = kanjiData.strokeOrderDiagram.replace('<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="0 0 109 109">', 
+        '<svg xmlns="http://www.w3.org/2000/svg" width="909" height="909" viewBox="0 0 109 109">\n<rect width="100%" height="100%" fill="white" /> ')
     
     return kanjiDatas

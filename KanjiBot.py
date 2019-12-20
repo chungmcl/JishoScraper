@@ -62,11 +62,10 @@ def AppendReadingCompounds(toSend, kanjiData):
 
 async def SendStrokeOrderDiagram(message, kanjiData, kanji):
     with io.BytesIO() as png:
-        # Increase the size of the stroke order diagram and add a white background instead of just transparent
-        strokeOrderDiagram = kanjiData.strokeOrderDiagram.replace('<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="0 0 109 109">', 
-        '<svg xmlns="http://www.w3.org/2000/svg" width="909" height="909" viewBox="0 0 109 109">\n<rect width="100%" height="100%" fill="white" /> ')
-        svg2png(bytestring=strokeOrderDiagram, write_to=png)
+        # Convert strokeOrderDiagram SVG to PNG
+        svg2png(bytestring=kanjiData.strokeOrderDiagram, write_to=png)
         png.seek(0)
+
         await message.channel.send(file=discord.File(png, f'{kanji}.png'))
 
 
