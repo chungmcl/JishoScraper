@@ -1,5 +1,6 @@
 import os
 import io
+import time
 import KanjiScraper
 import discord
 from dotenv import load_dotenv
@@ -20,32 +21,47 @@ async def on_message(message):
     if message.author == client.user:
         return
     messageContents = message.content.strip()
-    if '!kanji' in messageContents[0:6]:
-        flags = messageContents
-        toSearch = messageContents[messageContents.find('!kanji'):len(messageContents)]
+    delimiterEnglishSpace = messageContents.find(' ')
+    delimiterJapaneseSpace = messageContents.find('　')
+    delimiter = ''
+    if delimiterEnglishSpace >= 0 and delimiterJapaneseSpace >= 0: 
+        delimiter = min(delimiterEnglishSpace, delimiterJapaneseSpace)
+    elif delimiterEnglishSpace < 0 and delimiterJapaneseSpace >= 0:
+        delimiter = delimiterJapaneseSpace
+    elif delimiterEnglishSpace >= 0 and delimiterJapaneseSpace < 0:
+        delimiter = delimiterEnglishSpace
+    
+    if '!kanji' in messageContents[0:6] and delimiter >= 0:
+        flags = messageContents[6:delimiter]
+        flagList = flags.split('#')
+        toSearch = messageContents[delimiter:len(messageContents)]
         results = KanjiScraper.get_kanji(toSearch)
 
         for kanji, kanjiData in results.items():
-            toSend = list()
-            toSend.append('-------------------------------------------------------------------- \n')
-            toSend.append(f'**DATA ON {kanji}**' + '\n')
+            toSend = ''
+            toSend += '-------------------------------------------------------------------- \n'
+            toSend += f'**DATA ON {kanji}**' + '\n'
 
-            AppendYomis(toSend, kanjiData)
-            AppendTranslations(toSend, kanjiData)
-            AppendReadingCompounds(toSend, kanjiData)
+            toSend = [JoinYomis(toSend, kanjiData)]
+            if 'translations' in flagList:
+                AppendTranslations(toSend, kanjiData)
+            if 'readings' in flagList:
+                AppendReadingCompounds(toSend, kanjiData)
 
-            toSend = ''.join(toSend)
-            await message.channel.send(toSend)
+            for section in toSend:
+                await message.channel.send(section)
 
             await SendStrokeOrderDiagram(message, kanjiData, kanji)
+            time.sleep(0.20)
 
-def AppendYomis(toSend, kanjiData):
-    toSend.append('**KUNYOMI**' + '\n')
+def JoinYomis(toSend, kanjiData):
+    toSend += '**KUNYOMI**' + '\n'
     for kun in kanjiData.kunyomi:
-        toSend.append('> ' + kun + '\n')
-    toSend.append('**ONYOMI**' + '\n')
+        toSend += '> ' + kun + '\n'
+    toSend += '**ONYOMI**' + '\n'
     for on in kanjiData.onyomi:
-        toSend.append('> ' + on + '\n')
+        toSend += '> ' + on + '\n'
+    return toSend
 
 def AppendTranslations(toSend, kanjiData):
     toSend.append('**TRANSLATIONS**' + '\n')

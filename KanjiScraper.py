@@ -65,8 +65,12 @@ def get_kanji(kanjiList):
             for i, aLevelSoup in enumerate(kanjiData.kunyomi):
                 kanjiData.kunyomi[i] = aLevelSoup.next_element
             kanjiData.kunyomi = [str(kun) for kun in kanjiData.kunyomi]
-            kunReadingCompoundList = kanjiData.kunReadingCompounds.find_all('li')
-            kanjiData.kunReadingCompounds = [str(kunReadingCompound.next_element) for kunReadingCompound in kunReadingCompoundList]
+            # Some kanji DO NOT have a list of kun reading compounds
+            if len(kanjiData.kunReadingCompounds) > 0:
+                kunReadingCompoundList = kanjiData.kunReadingCompounds.find_all('li')
+                kanjiData.kunReadingCompounds = [str(kunReadingCompound.next_element) for kunReadingCompound in kunReadingCompoundList]
+            else:
+                kanjiData.kunReadingCompounds = ['*No Readings Found']
         else:
             kanjiData.kunyomi = ['*No Kunyomi*']
             kanjiData.kunReadingCompounds = ['*No Kunyomi*']
@@ -77,8 +81,12 @@ def get_kanji(kanjiList):
             for i, aLevelSoup in enumerate(kanjiData.onyomi):
                 kanjiData.onyomi[i] = aLevelSoup.next_element
             kanjiData.onyomi = [str(on) for on in kanjiData.onyomi]
-            onReadingCompoundList = kanjiData.onReadingCompounds.find_all('li')
-            kanjiData.onReadingCompounds = [str(onReadingCompound.next_element) for onReadingCompound in onReadingCompoundList]
+            # Some kanji DO NOT have a list of on reading compounds
+            if len(kanjiData.onReadingCompounds) > 0:
+                onReadingCompoundList = kanjiData.onReadingCompounds.find_all('li')
+                kanjiData.onReadingCompounds = [str(onReadingCompound.next_element) for onReadingCompound in onReadingCompoundList]
+            else:
+                kanjiData.onReadingCompounds = ['*No Readings Found*']
         else:
             kanjiData.onyomi = ['*No Onyomi*']
             kanjiData.onReadingCompounds = ['*No Onyomi*']
@@ -90,3 +98,5 @@ def get_kanji(kanjiList):
         '<svg xmlns="http://www.w3.org/2000/svg" width="909" height="909" viewBox="0 0 109 109">\n<rect width="100%" height="100%" fill="white" /> ')
     
     return kanjiDatas
+
+
