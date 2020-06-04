@@ -3,6 +3,7 @@ import io
 import time
 import KanjiScraper
 import discord
+from discord.ext import commands
 from dotenv import load_dotenv
 from cairosvg import svg2png
 from PIL import Image
@@ -10,49 +11,41 @@ from PIL import Image
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
-client = discord.Client()
+bot = commands.Bot('!')
 
-@client.event
+@bot.event
 async def on_ready():
     print('CONNECTED TO DISCORD.')
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    messageContents = message.content.strip()
-    delimiterEnglishSpace = messageContents.find(' ')
-    delimiterJapaneseSpace = messageContents.find('　')
-    delimiter = ''
-    if delimiterEnglishSpace >= 0 and delimiterJapaneseSpace >= 0: 
-        delimiter = min(delimiterEnglishSpace, delimiterJapaneseSpace)
-    elif delimiterEnglishSpace < 0 and delimiterJapaneseSpace >= 0:
-        delimiter = delimiterJapaneseSpace
-    elif delimiterEnglishSpace >= 0 and delimiterJapaneseSpace < 0:
-        delimiter = delimiterEnglishSpace
-    
-    if '!kanji' in messageContents[0:6] and delimiter >= 0:
-        flags = messageContents[6:delimiter]
-        flagList = flags.split('#')
-        toSearch = messageContents[delimiter:len(messageContents)]
-        results = KanjiScraper.get_kanji(toSearch)
+@bot.command()
+async def kanji(ctx, *args):
+    flags = {i for i in args if i.startswith('#')}
+    kanjiPhrase = ' '.join([i for i in args if i not in flags])
+    results = KanjiScraper.get_kanji(kanjiPhrase)
 
-        for kanji, kanjiData in results.items():
-            toSend = ''
-            toSend += '-------------------------------------------------------------------- \n'
-            toSend += f'**DATA ON {kanji}**' + '\n'
+    for kanji, kanjiData in results.items():
+        toSend = ''
+        toSend += '-------------------------------------------------------------------- \n'
+        toSend += f'**DATA ON {kanji}**' + '\n'
 
-            toSend = [JoinYomis(toSend, kanjiData)]
-            if 'translations' in flagList:
-                AppendTranslations(toSend, kanjiData)
-            if 'readings' in flagList:
-                AppendReadingCompounds(toSend, kanjiData)
+        toSend = [JoinYomis(toSend, kanjiData)]
+        if '#translations' in flags:
+            AppendTranslations(toSend, kanjiData)
+        if '#readings' in flags:
+            AppendReadingCompounds(toSend, kanjiData)
 
-            for section in toSend:
-                await message.channel.send(section)
+        for section in toSend:
+            await ctx.send(section)
 
-            await SendStrokeOrderDiagram(message, kanjiData, kanji)
-            time.sleep(0.20)
+        await SendStrokeOrderDiagram(ctx, kanjiData, kanji)
+
+@bot.command()
+async def joinVoice(ctx, vc : discord.VoiceChannel):
+    ctx.bot.voiceBoi = await vc.connect()
+
+@bot.command()
+async def leave(ctx):
+    await ctx.bot.voiceBoi.disconnect()
 
 def JoinYomis(toSend, kanjiData):
     toSend += '**KUNYOMI**' + '\n'
@@ -76,13 +69,13 @@ def AppendReadingCompounds(toSend, kanjiData):
     for i, readingCompound in enumerate(kanjiData.onReadingCompounds):
         toSend.append(readingCompound.replace('\n', '> ', 1).replace('\n', ' ') + '\n')
 
-async def SendStrokeOrderDiagram(message, kanjiData, kanji):
+async def SendStrokeOrderDiagram(ctx, kanjiData, kanji):
     with io.BytesIO() as png:
         # Convert strokeOrderDiagram SVG to PNG
         svg2png(bytestring=kanjiData.strokeOrderDiagram, write_to=png)
         png.seek(0)
 
-        await message.channel.send(file=discord.File(png, f'{kanji}.png'))
+        await ctx.send(file=discord.File(png, f'{kanji}.png'))
 
 
-client.run(token)
+bot.run(token)
