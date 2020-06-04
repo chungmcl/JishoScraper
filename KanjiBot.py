@@ -41,11 +41,11 @@ async def kanji(ctx, *args):
 
 @bot.command()
 async def joinVoice(ctx, vc : discord.VoiceChannel):
-    ctx.bot.voiceBoi = await vc.connect()
+    await vc.connect()
 
 @bot.command()
 async def leave(ctx):
-    await ctx.bot.voiceBoi.disconnect()
+    await ctx.voice_client.disconnect()
 
 def JoinYomis(toSend, kanjiData):
     toSend += '**KUNYOMI**' + '\n'
