@@ -51,6 +51,9 @@ async def relay(bot):
 
 @bot.command()
 async def setchn(ctx, chn: discord.TextChannel):
+    
+    global channel
+    
     if await bot.is_owner(ctx.message.author):
         channel = chn
         await ctx.message.add_reaction('\N{WASTEBASKET}')
