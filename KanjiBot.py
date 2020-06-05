@@ -11,6 +11,7 @@ from PIL import Image
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
+channel = None
 bot = commands.Bot('!')
 
 @bot.event
@@ -38,6 +39,22 @@ async def kanji(ctx, *args):
             await ctx.send(section)
 
         await SendStrokeOrderDiagram(ctx, kanjiData, kanji)
+
+async def relay(bot):
+    while True:
+        text = await bot.loop.run_in_executor(None, input)
+        if channel is None:
+            print('Please set channel first using the command')
+        else:  
+            await channel.send(text)
+
+@bot.command()
+async def setchn(ctx, chn: discord.TextChannel):
+    channel = chn
+
+@bot.event
+async def on_ready():
+    bot.loop.create_task(relay(bot))
 
 @bot.command()
 async def joinVoice(ctx, vc : discord.VoiceChannel):
@@ -76,6 +93,5 @@ async def SendStrokeOrderDiagram(ctx, kanjiData, kanji):
         png.seek(0)
 
         await ctx.send(file=discord.File(png, f'{kanji}.png'))
-
 
 bot.run(token)
