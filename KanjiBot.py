@@ -17,6 +17,7 @@ bot = commands.Bot('!')
 @bot.event
 async def on_ready():
     print('CONNECTED TO DISCORD.')
+    bot.loop.create_task(relay(bot))
 
 @bot.command()
 async def kanji(ctx, *args):
@@ -52,10 +53,7 @@ async def relay(bot):
 async def setchn(ctx, chn: discord.TextChannel):
     if await bot.is_owner(ctx.message.author):
         channel = chn
-
-@bot.event
-async def on_ready():
-    bot.loop.create_task(relay(bot))
+        await ctx.message.add_reaction('\N{WASTEBASKET}')
 
 @bot.command()
 async def joinVoice(ctx, vc : discord.VoiceChannel):
