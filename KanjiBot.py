@@ -50,7 +50,8 @@ async def relay(bot):
 
 @bot.command()
 async def setchn(ctx, chn: discord.TextChannel):
-    channel = chn
+    if await bot.is_owner(ctx.message.author):
+        channel = chn
 
 @bot.event
 async def on_ready():
